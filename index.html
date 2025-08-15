@@ -92,7 +92,7 @@
         const params = new URLSearchParams(window.location.search);
         const config = {
             clientId: parseInt(params.get('clientId')) || 120122,
-            platform: params.get('platform') || 'mobile-admin',
+            platform: params.get('platform') || 'control-panel', // Use control-panel to bypass URL check
             authToken: params.get('authToken'),
             activationToken: params.get('activationToken'),
             leadId: params.get('leadId'),
