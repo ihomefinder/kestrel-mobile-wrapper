@@ -62,10 +62,16 @@
         const urlParams = new URLSearchParams(window.location.search);
         const clientId = urlParams.get('clientId') || 120122; // Default for testing
         const platform = urlParams.get('platform') || 'mobile-admin';
+        // Get configuration from URL parameters or React Native injection
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientId = urlParams.get('clientId') || 120122; // Default for testing
+        const platform = urlParams.get('platform') || 'mobile-admin';
         const authToken = urlParams.get('authToken');
         const activationToken = urlParams.get('activationToken');
         const leadId = urlParams.get('leadId');
         const debug = urlParams.get('debug') === 'true';
+        
+        debugLog('Configuration loaded: clientId=' + clientId + ', platform=' + platform + ', hasAuthToken=' + !!authToken + ', hasActivationToken=' + !!activationToken);
         
         // Debug functions
         function debugLog(message) {
@@ -88,8 +94,12 @@
             // Add authentication if provided
             ...(authToken && { authenticationToken: authToken }),
             // Add activation token if provided (for testing/development)
-            ...(activationToken && { activationToken: activationToken })
+            ...(activationToken && { activationToken: activationToken }),
+            // Set preview mode when using activation token
+            ...(activationToken && { preview: true })
         };
+        
+        debugLog('Kestrel config set: ' + JSON.stringify(ihfKestrel.config));
 
         // Communication bridge with React Native WebView
         function sendMessageToReactNative(message) {
