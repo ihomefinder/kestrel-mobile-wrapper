@@ -46,6 +46,12 @@
         <div id="kestrel-widget-container">
             <div class="loading">Loading property search...</div>
         </div>
+        
+        <!-- Debug information (remove in production) -->
+        <div id="debug-info" style="position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; font-size: 12px; max-width: 300px; max-height: 200px; overflow-y: auto; display: none;">
+            <div><strong>Debug Messages:</strong></div>
+            <div id="debug-messages"></div>
+        </div>
     </div>
 
     <script>
@@ -58,6 +64,21 @@
         const platform = urlParams.get('platform') || 'mobile-admin';
         const authToken = urlParams.get('authToken');
         const leadId = urlParams.get('leadId');
+        const debug = urlParams.get('debug') === 'true';
+        
+        // Debug functions
+        function debugLog(message) {
+            console.log(message);
+            if (debug) {
+                const debugInfo = document.getElementById('debug-info');
+                const debugMessages = document.getElementById('debug-messages');
+                if (debugInfo && debugMessages) {
+                    debugInfo.style.display = 'block';
+                    debugMessages.innerHTML += '<div>' + new Date().toLocaleTimeString() + ': ' + message + '</div>';
+                    debugMessages.scrollTop = debugMessages.scrollHeight;
+                }
+            }
+        }
         
         // Set global Kestrel configuration
         ihfKestrel.config = {
@@ -69,36 +90,66 @@
 
         // Communication bridge with React Native WebView
         function sendMessageToReactNative(message) {
+            const messageStr = JSON.stringify(message);
+            console.log('Sending message to React Native:', messageStr);
+            
             if (window.ReactNativeWebView) {
-                window.ReactNativeWebView.postMessage(JSON.stringify(message));
+                window.ReactNativeWebView.postMessage(messageStr);
+            } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ReactNativeWebView) {
+                // iOS WebView
+                window.webkit.messageHandlers.ReactNativeWebView.postMessage(messageStr);
             } else {
-                console.log('Message to React Native:', message);
+                console.log('React Native WebView not detected. Message would be:', message);
             }
         }
 
         // Listen for messages from React Native
         window.addEventListener('message', function(event) {
+            // Filter out non-JSON messages (like setImmediate, browser internals)
+            if (!event.data || typeof event.data !== 'string') {
+                return;
+            }
+            
+            // Skip messages that don't look like JSON
+            if (!event.data.startsWith('{') && !event.data.startsWith('[')) {
+                debugLog('Ignoring non-JSON message: ' + event.data.substring(0, 50));
+                return;
+            }
+            
             try {
                 const data = JSON.parse(event.data);
-                console.log('Message from React Native:', data);
+                debugLog('Valid message from React Native: ' + JSON.stringify(data));
+                
+                // Ensure it's a message meant for us
+                if (!data.action) {
+                    return;
+                }
                 
                 // Handle different message types
                 switch(data.action) {
                     case 'updateSavedListings':
-                        // Update saved listings in the widget
+                        debugLog('Updating saved listings: ' + JSON.stringify(data.savedListingIds));
                         if (window.kestrelWidget && data.savedListingIds) {
                             // Update widget with new saved listings
+                            // This would require Kestrel API knowledge
                         }
                         break;
                     case 'updateSearchCriteria':
-                        // Update search criteria
+                        debugLog('Updating search criteria: ' + JSON.stringify(data.criteria));
                         if (window.kestrelWidget && data.criteria) {
                             // Update widget with new search criteria
+                            // This would require Kestrel API knowledge
                         }
                         break;
+                    case 'updateAuth':
+                        debugLog('Updating authentication');
+                        // Handle authentication updates
+                        break;
+                    default:
+                        debugLog('Unknown action: ' + data.action);
                 }
             } catch (error) {
-                console.error('Error parsing message from React Native:', error);
+                debugLog('Error parsing message: ' + error.message + ' | Raw: ' + event.data.substring(0, 100));
             }
         });
 
