@@ -63,6 +63,7 @@
         const clientId = urlParams.get('clientId') || 120122; // Default for testing
         const platform = urlParams.get('platform') || 'mobile-admin';
         const authToken = urlParams.get('authToken');
+        const activationToken = urlParams.get('activationToken');
         const leadId = urlParams.get('leadId');
         const debug = urlParams.get('debug') === 'true';
         
@@ -85,7 +86,9 @@
             clientId: parseInt(clientId),
             platform: platform,
             // Add authentication if provided
-            ...(authToken && { authenticationToken: authToken })
+            ...(authToken && { authenticationToken: authToken }),
+            // Add activation token if provided (for testing/development)
+            ...(activationToken && { activationToken: activationToken })
         };
 
         // Communication bridge with React Native WebView
