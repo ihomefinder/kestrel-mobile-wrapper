@@ -64,7 +64,9 @@
             clientId: parseInt(clientId),
             platform: platform,
             // Add authentication if provided
-            ...(authToken && { authenticationToken: authToken })
+            ...(authToken && { authenticationToken: authToken }),
+            // Add activation token for development/testing
+            activationToken: "cd48783e-63b5-40a0-b28b-127f6bfa8052" // Default development token
         };
 
         // Communication bridge with React Native WebView
@@ -210,7 +212,7 @@
             }
         }
 
-        // Start loading when the page is ready
+        // Start loading when page is ready
         window.addEventListener('DOMContentLoaded', loadKestrel);
         
         // Fallback for older browsers
