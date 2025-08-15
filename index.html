@@ -86,6 +86,8 @@
                 }
             }
         }
+
+        debugLog('Configuration loaded: clientId=' + clientId + ', platform=' + platform + ', hasAuthToken=' + !!authToken + ', hasActivationToken=' + !!activationToken);
         
         // Set global Kestrel configuration
         ihfKestrel.config = {
